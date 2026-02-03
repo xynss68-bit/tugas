@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pudot Kelompok 2</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:Poppins,sans-serif}
+body{
+background:linear-gradient(135deg,#ff9a9e,#fad0c4);
+padding-bottom:180px;color:#444;
+}
+header{text-align:center;padding:70px 20px;color:white;user-select:none}
+header h1{font-size:2.9rem;text-shadow:0 6px 20px rgba(0,0,0,.35)}
+.container{
+max-width:1150px;margin:auto;padding:20px;
+display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:25px;
+}
+.card{
+background:#fff0f6;border-radius:28px;padding:26px;text-align:center;
+box-shadow:0 20px 40px rgba(255,105,180,.35);
+animation:fade .8s forwards;opacity:0;
+}
+.card:nth-child(1){animation-delay:.2s}
+.card:nth-child(2){animation-delay:.4s}
+.card:nth-child(3){animation-delay:.6s}
+.card:nth-child(4){animation-delay:.8s}
+@keyframes fade{to{opacity:1;transform:translateY(0)}}
+.card h2{color:#ff3f8f}
+.price{color:#ff2f92;font-weight:800}
+.qty{display:flex;justify-content:center;gap:15px;margin-top:12px}
+.qty button{
+width:42px;height:42px;border-radius:50%;
+border:none;background:#ff4d88;color:white;font-size:1.3rem;
+}
+.qty span{font-size:1.2rem}
+
+.total-btn{
+position:fixed;bottom:95px;left:50%;transform:translateX(-50%);
+background:#ffd1e3;color:#ff2f92;
+padding:14px 30px;border-radius:40px;font-weight:800;
+}
+
+.order-btn{
+position:fixed;bottom:20px;left:50%;transform:translateX(-50%);
+background:linear-gradient(135deg,#ff4d88,#ff2f92);
+color:white;padding:20px 40px;border-radius:55px;
+font-size:1.25rem;font-weight:800;border:none;
+}
+
+.modal{
+position:fixed;inset:0;background:rgba(0,0,0,.7);
+display:none;justify-content:center;align-items:center;z-index:99;
+}
+.box{
+background:white;padding:25px;border-radius:20px;width:350px;
+}
+.box button{
+margin-top:10px;width:100%;padding:12px;border:none;
+border-radius:12px;background:#ff4d88;color:white;font-weight:700;
+}
+footer{text-align:center;padding:35px;color:white}
+</style>
+</head>
+
+<body>
+
+<header id="secretHeader">
+<h1>🥤 PUDOT KELOMPOK 2</h1>
+<p>Sedot Segarnya, Lupakan Galau!</p>
+</header>
+
+<div class="container">
+<div class="card"><h2>🍫 Coklat</h2><p class="price">Only 7K</p>
+<div class="qty"><button onclick="add(0,-1)">-</button><span id="q0">0</span><button onclick="add(0,1)">+</button></div></div>
+
+<div class="card"><h2>🥭 Mangga</h2><p class="price">Only 7K</p>
+<div class="qty"><button onclick="add(1,-1)">-</button><span id="q1">0</span><button onclick="add(1,1)">+</button></div></div>
+
+<div class="card"><h2>🍓 Strawberry</h2><p class="price">Only 7K</p>
+<div class="qty"><button onclick="add(2,-1)">-</button><span id="q2">0</span><button onclick="add(2,1)">+</button></div></div>
+
+<div class="card"><h2>🍬 Bubble Gum</h2><p class="price">Only 7K</p>
+<div class="qty"><button onclick="add(3,-1)">-</button><span id="q3">0</span><button onclick="add(3,1)">+</button></div></div>
+</div>
+
+<div class="total-btn" id="total">Total: Rp 0</div>
+<button class="order-btn" onclick="order()">💗 PESAN SEKARANG</button>
+
+<!-- ADMIN MODAL -->
+<div class="modal" id="admin">
+<div class="box">
+<h3>📊 LAPORAN HARIAN</h3>
+<div id="laporan"></div>
+<canvas id="grafik"></canvas>
+<button onclick="closeAdmin()">Tutup</button>
+</div>
+</div>
+
+<footer>By: JaXx</footer>
+
+<script>
+const PIN="2208",harga=7000;
+const rasa=["Coklat","Mangga","Strawberry","Bubble Gum"];
+let qty=[0,0,0,0];
+
+const today=new Date().toISOString().slice(0,10);
+let data=JSON.parse(localStorage.getItem("laporan"))||{};
+if(!data[today]) data[today]={total:0};
+
+function save(){
+data[today].total+=qty.reduce((a,b)=>a+b,0);
+localStorage.setItem("laporan",JSON.stringify(data));
+}
+
+function add(i,v){
+qty[i]=Math.max(0,qty[i]+v);
+document.getElementById("q"+i).innerText=qty[i];
+document.getElementById("total").innerText=
+"Total: Rp "+(qty.reduce((a,b)=>a+b,0)*harga).toLocaleString();
+}
+
+function order(){
+save();
+window.open("https://wa.me/6281332675769");
+}
+
+let tap=0;
+secretHeader.onclick=()=>{
+tap++;setTimeout(()=>tap=0,1000);
+if(tap===5){
+if(prompt("PIN?")===PIN)openAdmin();
+}
+}
+
+function openAdmin(){
+document.getElementById("admin").style.display="flex";
+let text="";
+Object.keys(data).forEach(d=>{
+text+=`${d}: ${data[d].total} cup<br>`;
+});
+laporan.innerHTML=text;
+draw();
+}
+
+function closeAdmin(){
+document.getElementById("admin").style.display="none";
+}
+
+function draw(){
+new Chart(document.getElementById("grafik"),{
+type:'bar',
+data:{
+labels:Object.keys(data),
+datasets:[{label:'Cup Terjual',data:Object.values(data).map(d=>d.total)}]
+}
+});
+}
+</script>
+
+</body>
+</html>
